@@ -14,14 +14,27 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-func UserHandler(w http.ResponseWriter, r *http.Request) {
+func PostFormWithContext(ctx context.Context, c *http.Client, url string, data url.Values) (resp *http.Response, err error) {
+	req, err := http.NewRequestWithContext(ctx, "POST", url, strings.NewReader(data.Encode()))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	return c.Do(req)
+}
 
+func GetWithContext(ctx context.Context, c *http.Client, url string) (resp *http.Response, err error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	return c.Do(req)
 }
 
 func main() {
 	db, err := sql.Open("sqlite", "./data/userdb.sqlite")
 	if err != nil {
-		log.Fatalf("Failed to open the user database")
+		log.Fatalf("Failed to open the user database: %v", err)
 	}
 
 	// set up database
@@ -39,6 +52,8 @@ VALUES ('fake.email@somecompany.com', 'John', 'Smith'),
 		('alice@othercompany.com', 'Alice', 'Rivest'),
 		('bob@thirdcompany.com', 'Bob', 'Shamir');
 `)
+
+	var c http.Client
 
 	http.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
 		id := strings.TrimPrefix(r.URL.Path, "/user/")
@@ -75,7 +90,7 @@ VALUES ('fake.email@somecompany.com', 'John', 'Smith'),
 				http.Error(w, "Cannot submit an empty note.", http.StatusBadRequest)
 				return
 			}
-			resp, err := http.PostForm("http://localhost:8081/new", url.Values{"userid": {id}, "content": {content}})
+			resp, err := PostFormWithContext(r.Context(), &c, "http://localhost:8081/new", url.Values{"userid": {id}, "content": {content}})
 			if err != nil {
 				http.Error(w, fmt.Sprintf("Failed to submit note: %v", err), http.StatusInternalServerError)
 				return
@@ -105,7 +120,7 @@ VALUES ('fake.email@somecompany.com', 'John', 'Smith'),
 			fmt.Fprintf(w, "<p>User: %v</p>", user)
 			fmt.Fprintf(w, `<form action="" method="post"><textarea name="note" rows="24" cols="80"></textarea><p><input type="submit" value="Submit Note"/></p></form>`)
 
-			resp, err := http.Get(fmt.Sprintf("http://localhost:8081/notes?userid=%s", id))
+			resp, err := GetWithContext(r.Context(), &c, fmt.Sprintf("http://localhost:8081/notes?userid=%s", id))
 			if err != nil {
 				http.Error(w, fmt.Sprintf("Failed to query notes for user %s: %v", id, err), http.StatusInternalServerError)
 				return
