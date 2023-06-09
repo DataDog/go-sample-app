@@ -8,11 +8,11 @@ import (
 	"log"
 	"net/http"
 
-	_ "modernc.org/sqlite"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
-	db, err := sql.Open("sqlite", "./data/notedb.sqlite")
+	db, err := sql.Open("sqlite3", "./data/notedb.sqlite")
 	if err != nil {
 		log.Fatalf("Failed to open the notes database: %v", err)
 	}
@@ -44,7 +44,6 @@ VALUES (1, 'Hello, John. This is John. You are leaving a note for yourself. You 
 
 	http.HandleFunc("/new", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
-			fmt.Printf("BAD REQUEST\n")
 			http.Error(w, "bad request", http.StatusNotFound)
 			return
 		}
@@ -64,13 +63,13 @@ VALUES (?, ?, datetime('now'));`, userid, content)
 		ids, ok := r.Form["userid"]
 		if !ok || len(ids) == 0 {
 			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 		id := ids[0]
 		rows, err := db.QueryContext(r.Context(), "SELECT id, content, created FROM notes WHERE userid = ?;", id)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "Failed to query db: %v", err)
-			fmt.Printf("Failed to query db: %v", err)
 			return
 		}
 
@@ -86,12 +85,10 @@ VALUES (?, ?, datetime('now'));`, userid, content)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				fmt.Fprintf(w, "Failed to encode JSON: %v", err)
-				fmt.Printf("Failed to encode JSON: %v", err)
 				return
 			}
 		}
-
 	})
 
-	log.Fatal(http.ListenAndServe("127.0.0.1:8081", nil))
+	log.Fatal(http.ListenAndServe("0.0.0.0:8081", nil))
 }

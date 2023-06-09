@@ -9,9 +9,11 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
+	"time"
 
-	_ "modernc.org/sqlite"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func PostFormWithContext(ctx context.Context, c *http.Client, url string, data url.Values) (resp *http.Response, err error) {
@@ -32,7 +34,19 @@ func GetWithContext(ctx context.Context, c *http.Client, url string) (resp *http
 }
 
 func main() {
-	db, err := sql.Open("sqlite", "./data/userdb.sqlite")
+	notesHost, found := os.LookupEnv("NOTES_HOST")
+	if !found {
+		panic("Cannot reach notes services. Please set NOTES_HOST!")
+	}
+
+	notesPort, found := os.LookupEnv("NOTES_PORT")
+	if !found {
+		notesPort = "8081"
+	}
+
+	notesURL := fmt.Sprintf("http://%s:%s", notesHost, notesPort)
+
+	db, err := sql.Open("sqlite3", "./data/userdb.sqlite")
 	if err != nil {
 		log.Fatalf("Failed to open the user database: %v", err)
 	}
@@ -53,7 +67,7 @@ VALUES ('fake.email@somecompany.com', 'John', 'Smith'),
 		('bob@thirdcompany.com', 'Bob', 'Shamir');
 `)
 
-	var c http.Client
+	c := &http.Client{Timeout: 2 * time.Second}
 
 	http.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
 		id := strings.TrimPrefix(r.URL.Path, "/user/")
@@ -90,7 +104,7 @@ VALUES ('fake.email@somecompany.com', 'John', 'Smith'),
 				http.Error(w, "Cannot submit an empty note.", http.StatusBadRequest)
 				return
 			}
-			resp, err := PostFormWithContext(r.Context(), &c, "http://localhost:8081/new", url.Values{"userid": {id}, "content": {content}})
+			resp, err := PostFormWithContext(r.Context(), c, notesURL+"/new", url.Values{"userid": {id}, "content": {content}})
 			if err != nil {
 				http.Error(w, fmt.Sprintf("Failed to submit note: %v", err), http.StatusInternalServerError)
 				return
@@ -116,11 +130,10 @@ VALUES ('fake.email@somecompany.com', 'John', 'Smith'),
 			}
 			found = true
 			rows.Scan(&user.Email, &user.Fname, &user.Lname)
-			fmt.Printf("USER: %#v\n", user)
 			fmt.Fprintf(w, "<p>User: %v</p>", user)
 			fmt.Fprintf(w, `<form action="" method="post"><textarea name="note" rows="24" cols="80"></textarea><p><input type="submit" value="Submit Note"/></p></form>`)
 
-			resp, err := GetWithContext(r.Context(), &c, fmt.Sprintf("http://localhost:8081/notes?userid=%s", id))
+			resp, err := GetWithContext(r.Context(), c, fmt.Sprintf(notesURL+"/notes?userid=%s", id))
 			if err != nil {
 				http.Error(w, fmt.Sprintf("Failed to query notes for user %s: %v", id, err), http.StatusInternalServerError)
 				return
@@ -157,8 +170,6 @@ VALUES ('fake.email@somecompany.com', 'John', 'Smith'),
 	})
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		id := strings.TrimPrefix(r.URL.Path, "/user/")
-		id = strings.SplitN(id, "/", 2)[0]
 		rows, err := db.QueryContext(r.Context(), "SELECT id, email FROM users;")
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Failed to query db: %v", err), http.StatusInternalServerError)
@@ -171,7 +182,6 @@ VALUES ('fake.email@somecompany.com', 'John', 'Smith'),
 		fmt.Fprintf(w, "<table>")
 		for rows.Next() {
 			rows.Scan(&user.ID, &user.Email)
-			fmt.Printf("USER: %#v\n", user)
 			fmt.Fprintf(w, `<tr><td><a href="/user/%d">%v</a></td><td>%v</td></tr>`, user.ID, user.ID, user.Email)
 		}
 		fmt.Fprintf(w, "</table>")
@@ -181,5 +191,5 @@ VALUES ('fake.email@somecompany.com', 'John', 'Smith'),
 		}
 	})
 
-	log.Fatal(http.ListenAndServe("127.0.0.1:8080", nil))
+	log.Fatal(http.ListenAndServe("0.0.0.0:8080", nil))
 }

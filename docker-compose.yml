@@ -1,0 +1,26 @@
+services:
+  notes:
+    container_name: notes
+    build: ./services/notes
+    ports:
+      - "8081:8081"
+  users:
+    container_name: users
+    build: ./services/users
+    ports:
+      - "8080:8080"
+    links:
+      - notes
+    environment:
+      - NOTES_HOST=notes
+      - NOTES_PORT=8081
+  datadog-agent:
+    container_name: datadog-agent
+    image: gcr.io/datadoghq/agent:latest
+    pid: host
+    environment:
+     - DD_API_KEY=${DD_API_KEY}
+    volumes:
+     - /var/run/docker.sock:/var/run/docker.sock
+     - /proc/:/host/proc/:ro
+     - /sys/fs/cgroup:/host/sys/fs/cgroup:ro
