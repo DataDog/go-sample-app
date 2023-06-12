@@ -1,6 +1,6 @@
 FROM golang:1.20 AS builder
 WORKDIR /users
-COPY go.mod go.sum main.go ./
+COPY . ./
 RUN go build -o users ./main.go
 
 FROM debian:stable-slim

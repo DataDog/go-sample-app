@@ -1,4 +1,4 @@
-module github.com/DataDog/sample-orchestrion/users
+module github.com/DataDog/go-sample-app/users
 
 go 1.20
 

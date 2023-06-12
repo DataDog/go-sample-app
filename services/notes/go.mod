@@ -1,4 +1,4 @@
-module github.com/DataDog/sample-orchestrion/notes
+module github.com/DataDog/go-sample-app/notes
 
 go 1.20
 

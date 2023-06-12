@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-make
+make all
 
 ./bin/notes &
 
