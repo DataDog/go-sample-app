@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
 
-make clean
-make
+make all
 
-./notes &
+./bin/notes &
 
 trap 'pkill -P $$' EXIT
 
-./users
-
-
+NOTES_HOST="127.0.0.1" ./bin/users

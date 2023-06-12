@@ -1,12 +1,15 @@
-all: users notes
+.PHONY: all clean data users notes
 
+all: clean data users notes
 
 notes:
-	go build ./cmd/notes
+	go build -o ./bin/notes ./services/notes
 
 users:
-	go build ./cmd/users
+	go build  -o ./bin/users ./services/users
+
+data:
+	mkdir -p data
 
 clean:
-	rm -f notes users data/*
-
+	rm -f ./bin/* ./data/*
