@@ -1,6 +1,6 @@
 go 1.20
 
 use (
-    ./services/notes
-    ./services/users
+	./services/notes
+	./services/users
 )

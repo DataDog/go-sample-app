@@ -1,0 +1,4 @@
+Component,Origin,License
+go-sample-app,github.com/DataDog/go-sample-app/notes,Apache-2.0
+go-sample-app,github.com/DataDog/go-sample-app/users,Apache-2.0
+go-sample-app,github.com/mattn/go-sqlite3,MIT
