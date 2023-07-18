@@ -126,7 +126,8 @@ VALUES ('fake.email@somecompany.com', 'John', 'Smith'),
 			}
 			http.Redirect(w, r, r.URL.String(), http.StatusFound)
 		}
-
+		fmt.Fprintf(w, "<html><body>")
+		fmt.Fprintf(w, "<h1>User Notes</h1>")
 		var found bool
 		for rows.Next() {
 			if found {
@@ -135,7 +136,7 @@ VALUES ('fake.email@somecompany.com', 'John', 'Smith'),
 			}
 			found = true
 			rows.Scan(&user.Email, &user.Fname, &user.Lname)
-			fmt.Fprintf(w, "<p>User: %v</p>", user)
+			fmt.Fprintf(w, "<p>User: %s: %s %s</p>", user.Email, user.Fname, user.Lname)
 			fmt.Fprintf(w, `<form action="" method="post"><textarea name="note" rows="24" cols="80"></textarea><p><input type="submit" value="Submit Note"/></p></form>`)
 
 			resp, err := GetWithContext(r.Context(), c, fmt.Sprintf(notesURL+"/notes?userid=%s", id))
@@ -164,6 +165,7 @@ VALUES ('fake.email@somecompany.com', 'John', 'Smith'),
 				fmt.Fprintf(w, "</table>")
 			}
 		}
+		fmt.Fprintf(w, "</body></html>")
 		if err := rows.Err(); err != nil {
 			http.Error(w, fmt.Sprintf("Failed to query db: %v", err), http.StatusInternalServerError)
 			return
@@ -184,12 +186,17 @@ VALUES ('fake.email@somecompany.com', 'John', 'Smith'),
 			ID    int
 			Email string
 		}
+		fmt.Fprintf(w, "<html><body>")
+		fmt.Fprintf(w, "<h1>User Directory</h1><p>Select a user to view their notes</p>")
 		fmt.Fprintf(w, "<table>")
+		fmt.Fprintf(w, "<tr><th>User ID</th><th>User Name</th></tr>")
 		for rows.Next() {
 			rows.Scan(&user.ID, &user.Email)
 			fmt.Fprintf(w, `<tr><td><a href="/user/%d">%v</a></td><td>%v</td></tr>`, user.ID, user.ID, user.Email)
 		}
 		fmt.Fprintf(w, "</table>")
+		fmt.Fprintf(w, "</body></html>")
+
 		if err := rows.Err(); err != nil {
 			http.Error(w, fmt.Sprintf("Failed to query db: %v", err), http.StatusInternalServerError)
 			return
