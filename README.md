@@ -51,7 +51,7 @@ Try adding a note or two.
 
 These notes are read from and saved to the `notes` service in the `services/notes` directory.
 
-If you want, take a little time to look at the applications in [services/user/main.go](services/user/main.go) and [services/notes/main.go](services/notes/main.go).
+If you want, take a little time to look at the applications in [services/users/main.go](services/users/main.go) and [services/notes/main.go](services/notes/main.go).
 
 ## Adding Instrumentation
 So far we have just run and played with the application, but there is no instrumentation currently in it. This means no traces are created or sent to Datadog.
