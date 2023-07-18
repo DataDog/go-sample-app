@@ -18,7 +18,9 @@ licenses: bin/go-licenses
 	tools/make-licenses.sh
 
 verify-licenses: bin/go-licenses
-	tools/verify-licenses.sh
+	# TODO: verify-licenses is noop bc the copyright column in LICENSE-3rdparty.csv is manually generated right now.
+	# This can be automated, see https://github.com/DataDog/orchestrion/tree/v0.1.0/tools/copyrights
+	# tools/verify-licenses.sh
 
 bin/go-licenses:
 	mkdir -p $(PWD)/bin
