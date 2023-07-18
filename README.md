@@ -35,6 +35,8 @@ Note: The rest of this document assumes you're on the default ports.
 
 
 Now we build and start the services:
+| :zap: Remember that the DD_API_KEY environment variable needs to be set! |
+|--------------------------------------------------------------------------|
 ```shell
 $ docker-compose build
 $ docker-compose up -d
@@ -108,6 +110,8 @@ $ docker-compose build
 ```
 
 And start the services again:
+| :zap: Remember that the DD_API_KEY environment variable needs to be set! |
+|--------------------------------------------------------------------------|
 ```sh 
 $ docker-compose up -d
 ```
