@@ -39,7 +39,7 @@ Now we build and start the services:
 $ docker-compose build
 $ docker-compose up -d
 ```
-If you go to [`http://localhost:8080`]() in your browser, you should see the application's main page. This is served by the `user` service in the `services/user` directory.
+If you go to [`http://localhost:8080`](http://localhost:8080) in your browser, you should see the application's main page. This is served by the `user` service in the `services/user` directory.
 
 It is a simple directory of the imaginary users of our notes application.
 ![Application Root](doc/root.png)
@@ -51,7 +51,7 @@ Try adding a note or two.
 
 These notes are read from and saved to the `notes` service in the `services/notes` directory.
 
-If you want, take a little time to look at the applications in [services/user/main.go]() and [services/notes/main.go]().
+If you want, take a little time to look at the applications in [services/user/main.go](services/user/main.go) and [services/notes/main.go](services/notes/main.go).
 
 ## Adding Instrumentation
 So far we have just run and played with the application, but there is no instrumentation currently in it. This means no traces are created or sent to Datadog.
@@ -112,7 +112,7 @@ And start the services again:
 $ docker-compose up -d
 ```
 
-Now, going to the application home page [http://localhost:8080]() will show us the same page, but looking at our Traces Page in the Datadog app [https://app.datadoghq.com/apm/traces]() should show some new traces appear!
+Now, going to the application home page [http://localhost:8080](http://localhost:8080) will show us the same page, but looking at our Traces Page in the Datadog app [https://app.datadoghq.com/apm/traces](https://app.datadoghq.com/apm/traces) should show some new traces appear!
 
 ![First Trace](doc/trace1.png)
 
