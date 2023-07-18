@@ -17,6 +17,13 @@ You should export a variable called `DD_API_KEY` in your shell environment. This
 $ export DD_API_KEY=[your api key]
 ```
 
+If you want, you can have your traces set to a custom `env` (environment) so that they can be queried specifically
+```sh 
+$ export DD_ENV=my.name
+```
+Then in the UI on the APM->Traces page, make sure to select your environment (e.g. `env:my.name`)
+![Selecting an Environment](doc/env.png)
+
 Next we can bring up the application. It starts out with no instrumentation present. We'll just click through the app to see how it works and what it does. (There's not much).
 By default, the applications bind to `localhost:8080` and `localhost:8081`, so make sure those ports are not occupied by other services on your machine.
 
