@@ -28,7 +28,7 @@ ex: moving the `users` service from `8080` to `8083`:
     container_name: users
     build: ./services/users
     ports:
--	  - "8080:8080"
+-     - "8080:8080"
 +     - "8083:8080"
 ```
 Note: The rest of this document assumes you're on the default ports.
