@@ -125,8 +125,10 @@ $ docker-compose build
 ```
 
 7. And start the services again:
+
 | :zap: Remember that the DD_API_KEY environment variable needs to be set! |
 |--------------------------------------------------------------------------|
+
 ```shell
 $ docker-compose up -d
 ```
