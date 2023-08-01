@@ -87,7 +87,7 @@ Orchestrion simplifies the process of instrumenting your Go applications.
 $ go install github.com/datadog/orchestrion@latest
 ```
 
-2. Run orchestrion over the code base. This recursively goes through the directories, finding Go files and adding instrumentation code to them.
+2. Run Orchestrion over the code base. This recursively goes through the directories, finding Go files and adding instrumentation code to them.
 ```sh
 $ orchestrion -w .
 Scanning Package /.../go-sample-app
