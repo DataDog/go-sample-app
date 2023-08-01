@@ -1,35 +1,53 @@
 # go-sample-app
 A sample application composed of several services, written in Go.
 
-This application is a downloadable, interactive example that demonstrates the use of Datadog's Go auto-instrumentation ([DataDog/orchestrion](https://github.com/DataDog/orchestrion))
+This application is a downloadable, interactive example that demonstrates how to use [Orchestrion][1] to auto-instrument Go applications for Datadog.
 
-The application is a very basic implementation of a multi-user notes app that allows users to submit and read notes.
+The application is a basic multi-user notes app that allows users to submit and read notes.
 
-## Getting Started
+## Setup
 
-To get started with this sample application, we can first launch the application and take a look at it.
-It is a very simple example web application with a *very* basic UI, but this is sufficient to demonstrate Orchestrion's use.
+### Prerequisites
 
-To start with, make sure you have an [API Key](https://docs.datadoghq.com/account_management/api-app-keys/) ready so that traces can appear in the UI.
-You should export a variable called `DD_API_KEY` in your shell environment. This will be picked up by the Datadog Agent and used to submit traces.
+Before getting started, ensure you have the following:
+- [Docker Compose][2]
+- A Datadog account and [API key][3]
+
+Export a variable called `DD_API_KEY` in your shell environment:
 
 ```shell
-$ export DD_API_KEY=[your api key]
+$ export DD_API_KEY=<Your API Key>
 ```
 
-If you want, you can have your traces set to a custom `env` (environment) so that they can be queried specifically
-```sh 
+The Datadog agent uses this key to submit traces.
+
+If you want, you can have your traces set to a custom `env` (environment) so that they can be queried specifically:
+
+```shell 
 $ export DD_ENV=my.name
 ```
-Then in the UI on the APM->Traces page, make sure to select your environment (e.g. `env:my.name`)
-![Selecting an Environment](doc/env.png)
 
-Next we can bring up the application. It starts out with no instrumentation present. We'll just click through the app to see how it works and what it does. (There's not much).
+### Installing and running the sample app
+
+1. To get started, clone the go-sample-app repo:
+```shell
+git clone https://github.com/DataDog/go-sample-app.git
+```
+2. Run the application from the `go-sample-app/` folder:
+```shell
+cd go-sample-app
+docker-compose build
+docker-compose up -d
+```
+3. Go to `localhost:8080` and verify the application is running.
+
+You should see a simple web application with a basic UI. This tutorial uses this application to demonstrate how to use Orchestrion.
+
 By default, the applications bind to `localhost:8080` and `localhost:8081`, so make sure those ports are not occupied by other services on your machine.
 
 If you cannot free up those ports, you can modify the `docker-compose.yml` file in the root directory of this project, changing the port bindings in the `ports:` section.
 
-ex: moving the `users` service from `8080` to `8083`:
+For example, to move `users` service from `8080` to `8083`:
 ```diff
   users:
     container_name: users
@@ -38,43 +56,38 @@ ex: moving the `users` service from `8080` to `8083`:
 -     - "8080:8080"
 +     - "8083:8080"
 ```
-Note: The rest of this document assumes you're on the default ports.
+Note: The rest of this tutorial assumes you're on the default ports.
 
+### Exploring the sample app
 
-Now we build and start the services:
-| :zap: Remember that the DD_API_KEY environment variable needs to be set! |
-|--------------------------------------------------------------------------|
-```shell
-$ docker-compose build
-$ docker-compose up -d
-```
-If you go to [`http://localhost:8080`](http://localhost:8080) in your browser, you should see the application's main page. This is served by the `user` service in the `services/user` directory.
+1. Go to [`http://localhost:8080`][4] in your browser, you should see the application's main page. This is served by the `user` service in the `services/user` directory.
 
 It is a simple directory of the imaginary users of our notes application.
 ![Application Root](doc/root.png)
 
-Clicking on a user's ID will take you to their "notes" page, where you can read and add notes.
+2. Click a user's ID to go to their **Notes** page. Here, you can read and add notes.
 ![User Notes Page](doc/user-notes.png)
 
-Try adding a note or two.
+3. Try adding a note or two.
 
 These notes are read from and saved to the `notes` service in the `services/notes` directory.
 
-If you want, take a little time to look at the applications in [services/users/main.go](services/users/main.go) and [services/notes/main.go](services/notes/main.go).
+Take a some time to look at the applications in [services/users/main.go](services/users/main.go) and [services/notes/main.go](services/notes/main.go).
 
-## Adding Instrumentation
-So far we have just run and played with the application, but there is no instrumentation currently in it. This means no traces are created or sent to Datadog.
 
-We want visibility into our application and what it's doing via Datadog APM. This will allow us to see traces of the requests that come into the system and analyze the flow and time taken to fulfil a request.
+## Adding instrumentation
+So far, you have only ran and explored the sample application, but there is still no instrumentation in it. This means no traces are created or sent to Datadog.
 
-With `orchestrion`, this instrumentation is easy to add. 
+The goal is to gain visibility into our application and what it's doing via Datadog APM. This allows you to see traces of the requests that come into the system and analyze the flow and time taken to fulfill a request.
 
-First, make sure you have `orchestrion` installed:
+Orchestrion simplifies the process of instrumenting your Go applications.
+
+1. Make sure you have Orchestrion installed:
 ```sh
 $ go install github.com/datadog/orchestrion@latest
 ```
 
-Next, we will simply run orchestrion over our code base. This will recursively go through the directories, finding go files and adding instrumentation code to them.
+2. Run orchestrion over the code base. This recursively goes through the directories, finding Go files and adding instrumentation code to them.
 ```sh
 $ orchestrion -w .
 Scanning Package /.../go-sample-app
@@ -83,47 +96,42 @@ overwriting /.../go-sample-app/services/users/main.go:
 overwriting /.../go-sample-app/tools/header_check.go:
 ```
 
-If you are curious about the changes orchestrion made, take a look at the git diff:
+3. If you are curious about the changes orchestrion made, review the git diff:
 ```sh
 $ git diff
 ...
 ```
 
-You should see new function calls and wrappers placed around relevant code such as http handler functions and sql clients. You'll also see comments added, such as `//dd:startwrap`. These comments are used to identify instrumented code, so that orchestrion can be run multiple times without duplicating instrumentation, and also so orchestrion can remove instrumentation when instructed to with the `-rm` flag.
+You should see new function calls and wrappers placed around relevant code such as HTTP handler functions and SQL clients. You'll also see comments added, such as `//dd:startwrap`. These comments are used to identify instrumented code, so that Orchestrion can be run multiple times without duplicating instrumentation, and also so Orchestrion can remove instrumentation when instructed to with the `-rm` flag.
 
-Now, shut down the services:
+4. Shut down the services:
 ```
 $ docker-compose down
 ```
 
-We need to update our go.mod files before we can build the new code. The `Orchestrion` instrumentation requires code from the `github.com/DataDog/orchestrion` library.
+5. You need to update the `go.mod` files before you can build the new code. The Orchestrion instrumentation requires code from the `github.com/DataDog/orchestrion` library:
 
-```sh
+```shell
 $ cd services/users
-services/users $ go mod tidy
-go: finding module for package github.com/datadog/orchestrion/instrument
-go: found github.com/datadog/orchestrion/instrument in github.com/datadog/orchestrion v0.1.0
-services/users $ cd ../notes/
-services/notes $ go mod tidy
-go: finding module for package github.com/datadog/orchestrion/instrument
-go: found github.com/datadog/orchestrion/instrument in github.com/datadog/orchestrion v0.1.0
-services/notes $ cd ../../
-$ 
+$ go mod tidy
+$ cd ../notes/
+$ go mod tidy
+$ cd ../../
 ```
 
-Then rebuild the applications with our newly instrumented code
-```sh 
+6. Rebuild the applications with the newly instrumented code:
+```shell
 $ docker-compose build
 ```
 
-And start the services again:
+7. And start the services again:
 | :zap: Remember that the DD_API_KEY environment variable needs to be set! |
 |--------------------------------------------------------------------------|
-```sh 
+```shell
 $ docker-compose up -d
 ```
 
-Now, going to the application home page [http://localhost:8080](http://localhost:8080) will show us the same page, but looking at our Traces Page in the Datadog app [https://app.datadoghq.com/apm/traces](https://app.datadoghq.com/apm/traces) should show some new traces appear!
+Going to the application home page [http://localhost:8080][4] displays the same page, but if you look at the [Traces][5] page in the Datadog app, new traces should appear!
 
 ![First Trace](doc/trace1.png)
 
@@ -131,42 +139,48 @@ Click through the various spans and tabs. For instance, by clicking the `sqlite3
 ![SQLite3 Trace Data](doc/sqlite-info.png)
 
 
-## More Traces
-Now that we have instrumentation, let's generate some more interesting traces. From the browser, click on one of the users' IDs to go to their notes page.
+## Generating more traces
+
+You've added some basic instrumentation to the sample application, so you can now generate some more interesting traces.
+
+1. From the sample application in your browser, click one of the users' IDs to go to their notes page.
 
 Navigating to that page should generate another trace, which looks like this:
 ![Notes Page](doc/notes-trace.png)
 
-Here we can see that the `users` service received an http request. It then sent an outgoing http request to the `notes` service, requesting `/notes?userid=2` in this case (this will depend on which user's page you are viewing).
+Here, you can see that the `users` service received an HTTP request. It then sent an outgoing HTTP request to the `notes` service, requesting `/notes?userid=2`. This varies depending on which user's page you view.
+
 ![Outgoing](doc/notes-trace2.png)
 
 The `notes` service then executes a SQL query:
 ![Notes SQL Query](doc/notes-sql.png)
 
+2. Add a new note. When you do, you should see a new trace appear.
 
-Try adding a new note. When you do that, you should see a new trace appear.
 ![New Note Trace](doc/notes-trace3.png)
+
 This trace appears with type `POST` and status code `302` because the `users` service returns a redirect to the browser after the submission succeeds.
 
-Once again, we can see in the trace that the `users` service talks to the `notes` service, this time resulting in an `INSERT` query.
+3. Examine the trace again. You can see that the `users` service communicates with the `notes` service, this time resulting in an `INSERT` query.
 ![New Note Trace Details](doc/notes-trace4.png)
 
 ## Removing Instrumentation
-Now that we've seen how to add instrumentation to the code, we might as well cover how to remove it. 
 
-Removing instrumentation is as easy as adding it. If, for whatever reason, you want to remove the instrumentation added by `orchestrion`, run the following in the repository root:
-```sh 
+Removing instrumentation is as simple as adding it. To remove the instrumentation added by Orchestrion:
+
+1. Run the following in the repository root:
+```shell
 $ orchestrion -rm -w .
-Scanning Package /.../go-sample-app
-Removing Orchestrion instrumentation.
-overwriting /.../go-sample-app/services/notes/main.go:
-overwriting /.../go-sample-app/services/users/main.go:
-overwriting /.../go-sample-app/tools/header_check.go:
 ```
 
-Next, run `go mod tidy` again, as we did before, for both services. This will clean up the dependencies we had to add earlier.
+2. Run `go mod tidy` again, as you did before, for both services. This cleans up the dependencies from before.
 
-A git diff should show that the instrumentation has been removed.
+3. Run `git diff` to verify you removed the instrumentation:
 ```sh
 $ git diff
 ```
+[1]: https://github.com/DataDog/orchestrion
+[2]: https://docs.docker.com/compose/install/
+[3]: https://docs.datadoghq.com/account_management/api-app-keys/
+[4]: http://localhost:8080
+[5]: https://app.datadoghq.com/apm/traces
