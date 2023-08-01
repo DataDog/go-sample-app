@@ -55,7 +55,7 @@ VALUES (1, 'Hello, John. This is John. You are leaving a note for yourself. You 
 		r.ParseForm()
 		userid := r.FormValue("userid")
 		content := r.FormValue("content")
-		_, err = db.ExecContext(context.Background(),
+		_, err = db.ExecContext(r.Context(),
 			`INSERT INTO notes (userid, content, created)
 VALUES (?, ?, datetime('now'));`, userid, content)
 		if err != nil {

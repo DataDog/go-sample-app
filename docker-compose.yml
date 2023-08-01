@@ -5,22 +5,30 @@ services:
     build: ./services/notes
     ports:
       - "8081:8081"
+    links:
+      - datadog-agent
+    environment:
+      - DD_AGENT_HOST=datadog-agent
   users:
     container_name: users
     build: ./services/users
     ports:
       - "8080:8080"
     links:
+      - datadog-agent
       - notes
     environment:
       - NOTES_HOST=notes
       - NOTES_PORT=8081
+      - DD_AGENT_HOST=datadog-agent
   datadog-agent:
     container_name: datadog-agent
     image: gcr.io/datadoghq/agent:latest
     pid: host
     environment:
+     - DD_APM_NON_LOCAL_TRAFFIC=true
      - DD_API_KEY=${DD_API_KEY}
+     - DD_ENV=${DD_ENV}
     volumes:
      - /var/run/docker.sock:/var/run/docker.sock
      - /proc/:/host/proc/:ro
